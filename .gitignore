@@ -1,2 +1,4 @@
 scripts/__pycache__/globals.cpython-311.pyc
 scripts/__pycache__/__init__.cpython-311.pyc
+data/clash/clash_parsed.csv
+data/clash/clash_raw.csv
