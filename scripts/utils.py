@@ -2,7 +2,8 @@ import sys
 import editdistance
 import subprocess
 import pandas as pd
-
+from sklearn.metrics import (accuracy_score, f1_score, precision_score,
+                             recall_score, roc_auc_score)
 
 from scripts.globals import RNADUPLEX_LOCATION
 
@@ -102,3 +103,23 @@ def find_matches_with_rnaduplex(df):
                        })
 
     return df
+
+
+def report_performance(model, X, y):
+    # Make predictions on the input data
+    y_pred = model.predict(X)
+
+    # Calculate performance metrics
+    accuracy = accuracy_score(y, y_pred)
+    precision = precision_score(y, y_pred)
+    recall = recall_score(y, y_pred)
+    f1 = f1_score(y, y_pred)
+    roc_auc = roc_auc_score(y, y_pred)
+
+    return {
+        'Accuracy': accuracy,
+        'Precision': precision,
+        'Recall': recall,
+        'F1-Score': f1,
+        'ROC AUC': roc_auc,
+    }
