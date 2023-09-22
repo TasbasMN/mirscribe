@@ -13,8 +13,4 @@ raw CLASH data (mmc1.txt) converted into csv file
 
 ## clash_parsed.csv
 
-Parsed CLASH data, created by data/raw/clash/preprocess.clash.ipynb
-
-- dropped irrelevant columns
-- renamed columns
-- dropped rows where mRNA length is lower than miRNA length
+Parsed CLASH data, created by ./preprocess.clash.ipynb
