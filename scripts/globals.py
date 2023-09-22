@@ -9,8 +9,10 @@ def get_RNAduplex_location():
     
 
 RNADUPLEX_LOCATION = get_RNAduplex_location()
+
 PYENSEMBL_CACHE_DIR = "/run/media/nazif/2F946E411BA61D49/data"
-XGB_PIPELINE_RESULTS = "scripts/xgb_pipeline/results"
+XGB_PIPELINE_DIR = "scripts/xgb_pipeline/results"
+SANA_DIR = "data/sana"
 
 CLASH_CSV = "data/clash/clash_parsed.csv"
 TA_SPS_CSV = "data/ta_sps/ta_sps.csv"
