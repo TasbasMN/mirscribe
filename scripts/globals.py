@@ -1,0 +1,2 @@
+
+PYENSEMBL_CACHE_DIR = "/run/media/nazif/2F946E411BA61D49/data"
