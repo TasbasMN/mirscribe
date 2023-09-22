@@ -11,6 +11,8 @@ editdistance = "^0.6.2"
 pandas = "^2.1.1"
 pyensembl = "^2.2.9"
 diff-match-patch = "^20230430"
+matplotlib = "3.7.1"
+seaborn = "^0.12.2"
 
 
 [tool.poetry.group.dev.dependencies]
