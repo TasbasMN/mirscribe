@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.metrics import (accuracy_score, f1_score, precision_score,
                              recall_score, roc_auc_score)
 
-from scripts.globals import RNADUPLEX_LOCATION
+from scripts.globals import *
 
 
 def get_size_in_ram(obj):
@@ -123,3 +123,42 @@ def report_performance(model, X, y):
         'F1-Score': f1,
         'ROC AUC': roc_auc,
     }
+    
+
+def get_nucleotides_in_interval(chrom, start, end):
+    # sourcery skip: extract-method
+    file_path = f"{GRCH37_DIR}/Homo_sapiens.GRCh37.dna.chromosome.{chrom}.fa"
+    with open(file_path, 'r') as file:
+        file.readline()
+        byte_position = file.tell()
+        line_length = len(file.readline().strip())
+        start_offset = start - 1
+        end_offset = end - 1
+        num_start_new_lines = start_offset // line_length
+        num_end_new_lines = end_offset // line_length
+        start_byte_position = byte_position + start_offset + num_start_new_lines
+        end_byte_position = byte_position + end_offset + num_end_new_lines
+        file.seek(start_byte_position)
+
+        # Read the nucleotides in the interval
+        nucleotides = file.read(end_byte_position - start_byte_position + 1)
+
+    # Remove newlines from the nucleotides
+    nucleotides = nucleotides.replace('\n', '')
+
+    return nucleotides
+
+def get_nucleotide_at_position(chrom, position):
+    file_path = f"{GRCH37_DIR}/Homo_sapiens.GRCh37.dna.chromosome.{chrom}.fa"
+    with open(file_path, 'r') as file:
+        file.readline()
+        byte_position = file.tell()
+        line_length = len(file.readline().strip())
+        offset = position - 1
+        num_new_lines = offset // line_length
+        byte_position = byte_position + offset + num_new_lines
+        file.seek(byte_position)
+
+        # Read the nucleotide at the position
+        nucleotide = file.read(1)
+    return nucleotide

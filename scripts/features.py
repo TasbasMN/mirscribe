@@ -185,3 +185,22 @@ def find_mres_in_close_proximity(df):
     )
 
     return df
+
+def generate_is_mirna_column(df, grch):
+    coords = pd.read_csv(f"data/mirna_coordinates/grch{grch}_coordinates.csv")
+    df['is_mirna'] = 0
+    df["mirna_accession"] = None
+    
+    # Iterate over each mutation in the mutations dataframe
+    for index, row in df.iterrows():
+        mutation_chr = row['chr']
+        mutation_start = row['pos']
+
+        # Check if the mutation falls into any of the miRNAs
+        matching_rnas = coords[(coords['chr'] == mutation_chr) & (coords['start'] <= mutation_start) & (coords['end'] >= mutation_start)]
+
+        if not matching_rnas.empty:
+            # Update the 'is_mirna' column to 1 for the current mutation
+            df.at[index, 'is_mirna'] = 1
+            df.at[index, 'mirna_accession'] = matching_rnas['mirna_accession'].values[0]
+    return df

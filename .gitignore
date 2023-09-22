@@ -5,5 +5,9 @@ scripts/__pycache__/utils.cpython-311.pyc
 
 data/clash/clash_parsed.csv
 data/clash/clash_raw.csv
+data/fasta/
+
+
 scripts/xgb_pipeline/results
 
+scripts/__pycache__/ensembl.cpython-311.pyc
