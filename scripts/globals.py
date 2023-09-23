@@ -1,4 +1,6 @@
 from socket import gethostname
+from multiprocessing import cpu_count
+
 
 def get_RNAduplex_location():
     hostname = gethostname()
@@ -18,3 +20,6 @@ GRCH37_DIR = "data/fasta/grch37"
 CLASH_CSV = "data/clash/clash_parsed.csv"
 TA_SPS_CSV = "data/ta_sps/ta_sps.csv"
 MIRNA_CSV = "data/mirna/mirna.csv"
+
+NUM_CORES = cpu_count()
+XGB_MODEL = "models/model_with_no_close_proximity.json"

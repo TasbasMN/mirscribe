@@ -204,3 +204,60 @@ def generate_is_mirna_column(df, grch):
             df.at[index, 'is_mirna'] = 1
             df.at[index, 'mirna_accession'] = matching_rnas['mirna_accession'].values[0]
     return df
+
+#####
+# vcf functions
+
+def generate_positions_from_id(vcf_df):
+    vcf_df['chr'] = vcf_df['id'].str.split('_').str[0]
+
+    vcf_df['start_coordinate'] = vcf_df['id'].str.split('_').str[1].astype(int) - 30 + vcf_df["mrna_start"]
+    vcf_df['end_coordinate'] = vcf_df['id'].str.split('_').str[1].astype(int) - 30 + vcf_df["mrna_end"]
+    
+    return vcf_df
+
+def generate_mre_sequence_for_vcf(vcf_df):
+
+    def slice_column(row):
+        return row["mrna_sequence"][row["mre_start"]:row["mre_end"]]
+    
+    # getting mirna length
+    vcf_df["mirna_length"] = vcf_df["mirna_sequence"].str.len()
+
+    # using mirna length to figure out mre coordinates
+    vcf_df["mre_end"] = vcf_df["mrna_end"] + vcf_df["mirna_start"]
+    vcf_df["mre_start"] = vcf_df["mre_end"] - vcf_df["mirna_length"]
+
+    # some start values might be lower than zero, so we need to adjust
+    vcf_df["mre_start"] = vcf_df["mre_start"].apply(lambda x: max(x, 0))
+
+    # creating mre sequence column
+    vcf_df["mre_region"] = vcf_df.apply(slice_column, axis=1)
+
+    # dropping temp column
+    vcf_df.drop(columns=["mirna_length"], inplace=True)
+    
+    return vcf_df
+
+def generate_au_content_column_for_vcf(vcf_df):
+
+    vcf_df["local_au_content"] = vcf_df['mrna_sequence'].apply(calculate_au_content)
+    
+    return vcf_df
+
+def apply_pipeline(df):
+    df = generate_positions_from_id(df)
+    df = generate_alignment_string_from_dot_bracket(df)
+    df = generate_match_count_columns(df)
+    df = generate_ta_sps_columns(df)
+    df = generate_mre_sequence_for_vcf(df)
+    df = generate_important_sites(df)
+    df = generate_mirna_conservation_column(df)
+    df = generate_seed_type_columns(df)
+    df = generate_mre_au_content_column(df)
+    df = generate_au_content_column_for_vcf(df)
+    return df
+    # df_filtered = filter_columns_for_xgb_prediction(df)
+    # return make_predictions_regressor(df, df_filtered)
+
+
