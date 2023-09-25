@@ -1,10 +1,6 @@
 import argparse
-import csv
-import os
-import subprocess
-import time
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from socket import gethostname
+import gc
+from concurrent.futures import ProcessPoolExecutor
 
 import pandas as pd
 
@@ -37,6 +33,12 @@ df = df[start:end]
 
 # prepare jobs
 wt_jobs, mutated_jobs = prepare_jobs_from_df(df)
+
+# free up RAM
+del df
+gc.collect()
+print("gc 1 done")
+
 handle_target_file(result_csv_file)
 
 
@@ -44,11 +46,17 @@ handle_target_file(result_csv_file)
 wt_result_array = run_jobs_multithreaded(wt_jobs, 0, result_csv_file)
 mut_result_array = run_jobs_multithreaded(mutated_jobs, 1, result_csv_file)
 
+print("results are written to the disk.")
 
 # reading results
 wt_result_df = pd.DataFrame(wt_result_array)
 mut_result_df = pd.DataFrame(mut_result_array)
 rnaduplex_results_df = pd.concat([wt_result_df, mut_result_df])
+
+# free up RAM
+del wt_result_df, mut_result_df, wt_result_array, mut_result_array
+gc.collect()
+print("gc 2 done")
 
 
 # preprocess for prediction
@@ -58,12 +66,24 @@ rnaduplex_results_df["id"] = rnaduplex_results_df["mutation_id"].astype(str) + "
 rnaduplex_results_df.drop(columns=["mutation_id"], inplace=True)
 df_chunks = split_df_to_num_thread_chunks(rnaduplex_results_df)
 
+# free up RAM
+del rnaduplex_results_df
+gc.collect()
+print("gc 3 done")
+
 
 # running prediction pipeline
 with ProcessPoolExecutor(max_workers=NUM_CORES) as executor:
     results = list(executor.map(apply_pipeline, df_chunks))
-    
+
 pipeline_results_df = pd.concat(results)
+
+# free up RAM
+del results
+gc.collect()
+print("gc 4 done")
+
+
 filtered_df = filter_columns_for_xgb_prediction(pipeline_results_df)
 df = make_predictions_regressor(pipeline_results_df, filtered_df)
 
