@@ -340,3 +340,5 @@ def filter_columns_for_xgb_prediction(df):
         "local_au_content"
     ]
     return df[cols_to_keep]
+
+

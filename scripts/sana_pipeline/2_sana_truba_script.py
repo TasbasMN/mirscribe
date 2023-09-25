@@ -20,8 +20,9 @@ args = parser.parse_args()
 start = args.s
 end = args.e
 vcf_file = args.vcf
+file_name = vcf_file.split("/")[1].split("_")[0]
 output_dir = args.output_dir
-result_csv_file = f"results/sana_results_{start}_{end}.csv"
+result_csv_file = f"results/{file_name}_{start}_{end}.csv"
 
 
 # importing dfs
@@ -87,7 +88,8 @@ print("gc 4 done")
 filtered_df = filter_columns_for_xgb_prediction(pipeline_results_df)
 df = make_predictions_regressor(pipeline_results_df, filtered_df)
 
-df.to_csv(f"results/sana_results_{start}_{end}_with_prediction.csv", index=False)
+# non-results for debugging purposes
+df[df.pred_difference_binary == 0].to_csv(f"results/{file_name}_{start}_{end}_other_results.csv", index=False)
 
-df2 = df[df.pred_difference_binary != 0]
-df2.to_csv(f"results/sana_results_{start}_{end}_with_prediction_only_meaningful_results.csv", index=False)
+# meaningful results
+df[df.pred_difference_binary != 0].to_csv(f"results/{file_name}_{start}_{end}_meaningful_results.csv", index=False)
