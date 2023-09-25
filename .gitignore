@@ -13,3 +13,6 @@ results/*
 scripts/xgb_pipeline/results
 
 scripts/__pycache__/ensembl.cpython-311.pyc
+
+
+scratchpad.ipynb
