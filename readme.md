@@ -4,4 +4,4 @@ This is the github repository of project "Machine Learning Insights into the Imp
 
 ### Case study
 
-The detailed document of case study can be found under hibit23 folder.
+The detailed document of case study can be found [here](hibit23/case_study.md).
