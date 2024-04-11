@@ -1,0 +1,8 @@
+# all generated data under clash
+data/clash/*.csv
+
+# all result csvs under scripts
+scripts/**/*.csv
+
+# all temp files
+scripts/**/*.pyc
