@@ -1,0 +1,1 @@
+required for get_nucleotides_in_interval() function to fetch nucleotides directly from FASTA using nucleotide position.

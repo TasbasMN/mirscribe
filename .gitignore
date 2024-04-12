@@ -6,3 +6,12 @@ scripts/**/*.csv
 
 # all temp files
 scripts/**/*.pyc
+
+# vcfs
+data/**/*.vcf
+
+# genome FASTA files
+data/**/*.fa
+
+# all result csvs
+results/**/*.csv
