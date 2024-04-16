@@ -18,3 +18,9 @@ results/**/*.csv
 
 # TODO
 TODO.md
+
+# WIP
+WIP/*
+
+# all result csvs
+vcf_results/**/*.csv

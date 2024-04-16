@@ -174,28 +174,24 @@ def get_nucleotide_at_position(chrom, position):
 # multithreaded
 
 def prepare_jobs_from_df(df):
-    
+    # Load the MIRNA_CSV file
     mirna_df = pd.read_csv(MIRNA_CSV)
-    
-    wt_sequences = df["sequence"].to_list()
-    mutated_sequences = df["mutated_sequence"].to_list()
-    identifiers = df["id"].to_list()
-    mirna_identifiers = mirna_df["mirna_accession"].to_list()
-    mirna_sequences = (mirna_df["sequence"]
-                       .tolist())
 
-    wt_pairs = [(i, j) for i in wt_sequences for j in mirna_sequences]
-    mutated_pairs = [(k, l)
-                     for k in mutated_sequences for l in mirna_sequences]
-    id_pairs = [(m, n) for m in identifiers for n in mirna_identifiers]
+    # Extract relevant data from the input DataFrame
+    wt_sequences = df["sequence"].tolist()
+    mutated_sequences = df["mutated_sequence"].tolist()
+    identifiers = df["id"].tolist()
+    mirna_identifiers = mirna_df["mirna_accession"].tolist()
+    mirna_sequences = mirna_df["sequence"].tolist()
 
-    wt_jobs_set = {
-        wt_pair + id_pair for wt_pair, id_pair in zip(wt_pairs, id_pairs)
-    }
-    mutated_jobs_set = {
-        mutated_pair + id_pair
-        for mutated_pair, id_pair in zip(mutated_pairs, id_pairs)
-    }
+    # Create pairs of wild-type sequences and miRNA sequences
+    wt_pairs = [(wt, mirna) for wt in wt_sequences for mirna in mirna_sequences]
+    mutated_pairs = [(mutated, mirna) for mutated in mutated_sequences for mirna in mirna_sequences]
+    id_pairs = [(identifier, mirna_id) for identifier in identifiers for mirna_id in mirna_identifiers]
+
+    # Create sets of job tuples
+    wt_jobs_set = {wt_pair + id_pair for wt_pair, id_pair in zip(wt_pairs, id_pairs)}
+    mutated_jobs_set = {mutated_pair + id_pair for mutated_pair, id_pair in zip(mutated_pairs, id_pairs)}
 
     return wt_jobs_set, mutated_jobs_set
 
