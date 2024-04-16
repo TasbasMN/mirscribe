@@ -258,13 +258,29 @@ def run_jobs_multithreaded(job_list, binary_value, result_file):
     return results
 
 def handle_target_file(result_file):
+    """
+    Handles the target file by creating the necessary directory and backing up the existing file.
+
+    Args:
+        result_file (str): The path to the target file.
+
+    Returns:
+        None
+    """
+    # Create the target folder if it doesn't exist
+    target_folder = os.path.dirname(result_file)
+    if target_folder and not os.path.exists(target_folder):
+        os.makedirs(target_folder, exist_ok=True)
+
+    # Backup the existing file if it exists
     if os.path.isfile(result_file):
-        # Get the current timestamp
         timestamp = time.strftime("%Y%m%d%H%M%S")
-        # Rename the existing CSV file with a ".bak" suffix and a timestamp
-        bak_filename = f"{result_file}_{timestamp}.bak"
-        os.rename(result_file, bak_filename)
-        
+        backup_file = f"{result_file}_{timestamp}.bak"
+        os.rename(result_file, backup_file)
+        print(f"Backed up {result_file} to {backup_file}")
+    else:
+        print(f"No existing file found at {result_file}")
+
 
 def split_df_to_num_thread_chunks(df):
     chunk_size = (len(df) + NUM_CORES - 1) // NUM_CORES
