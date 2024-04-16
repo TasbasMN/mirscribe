@@ -13,7 +13,7 @@ from scripts.features import *
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", default=0, type=int, help="start index")
 parser.add_argument("-e", default=1, type=int, help="end index")
-parser.add_argument("--vcf", help="VCF file to analyze")
+parser.add_argument("--vcf", help="VCF file to analyze", default="data/sample_vcfs/PD3851a.vcf")
 parser.add_argument("--output_dir", default="./results",
                     help="Output directory for runtime file, defaults to ./results")
 args = parser.parse_args()
