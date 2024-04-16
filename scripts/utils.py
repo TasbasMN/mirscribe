@@ -296,8 +296,6 @@ def handle_target_file(result_file):
         backup_file = f"{result_file}_{timestamp}.bak"
         os.rename(result_file, backup_file)
         print(f"Backed up {result_file} to {backup_file}")
-    else:
-        print(f"No existing file found at {result_file}")
 
 
 def split_df_to_num_thread_chunks(df):
