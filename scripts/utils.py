@@ -238,8 +238,17 @@ def run_rnaduplex_multithreaded(long_sequence, short_sequence, long_identifier, 
         return start_long - 1, end_long, long_bracket, start_short - 1, end_short, short_bracket, energy_value, long_identifier, short_identifier, long_sequence, short_sequence
 
 
-def run_jobs_multithreaded(job_list, binary_value, result_file):
+def run_jobs_multithreaded(job_list, binary_value):
+    """
+    Run jobs in a multithreaded manner using ProcessPoolExecutor.
 
+    Args:
+        job_list (list): A list of jobs to be executed. Each job should be a tuple or list of arguments to be passed to the `run_rnaduplex_multithreaded` function.
+        binary_value (any): A binary value to be appended to the result of each job. 0 for wild-type, 1 for mutated.
+
+    Returns:
+        list: A list of tuples, where each tuple contains the result of a job and the binary value.
+    """
     with ProcessPoolExecutor() as executor:
         future_jobs = [executor.submit(
             run_rnaduplex_multithreaded, *job) for job in job_list]
@@ -251,11 +260,20 @@ def run_jobs_multithreaded(job_list, binary_value, result_file):
             result_with_binary = result + (binary_value,)
             results.append(result_with_binary)
 
-        with open(result_file, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerows(results)
-    
     return results
+
+
+def save_results_to_disk(results, result_file):
+    """
+    Save the results to a file.
+
+    Args:
+        results (list): A list of tuples, where each tuple contains the result of a job and the binary value.
+        result_file (str): The path to the file where the results should be saved.
+    """
+    with open(result_file, 'a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerows(results)
 
 def handle_target_file(result_file):
     """
