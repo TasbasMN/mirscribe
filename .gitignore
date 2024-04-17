@@ -20,7 +20,10 @@ results/**/*.csv
 TODO.md
 
 # WIP
-WIP/*
+WIP/
 
 # all result csvs
 vcf_results/**/*.csv
+
+# meeting scripts
+scripts/meeting_scripts/

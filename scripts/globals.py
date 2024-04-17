@@ -23,3 +23,5 @@ MIRNA_CSV = "data/mirna/mirna.csv"
 
 NUM_CORES = cpu_count()
 XGB_MODEL = "models/model_with_no_close_proximity.json"
+
+QUANTILE_RANGE = 0.25
