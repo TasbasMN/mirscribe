@@ -178,8 +178,8 @@ def prepare_jobs_from_df(df):
     mirna_df = pd.read_csv(MIRNA_CSV)
 
     # Extract relevant data from the input DataFrame
-    wt_sequences = df["sequence"].tolist()
-    mutated_sequences = df["mutated_sequence"].tolist()
+    wt_sequences = df["wt_seq"].tolist()
+    mutated_sequences = df["mut_seq"].tolist()
     identifiers = df["id"].tolist()
     mirna_identifiers = mirna_df["mirna_accession"].tolist()
     mirna_sequences = mirna_df["sequence"].tolist()

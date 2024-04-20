@@ -25,3 +25,7 @@ NUM_CORES = cpu_count()
 XGB_MODEL = "models/model_with_no_close_proximity.json"
 
 QUANTILE_RANGE = 0.25
+
+MIRNA_COORDS_DIR = "data/mirna_coordinates"
+
+NUCLEOTIDE_OFFSET = 30
