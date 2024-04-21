@@ -9,10 +9,17 @@ def get_RNAduplex_location():
     else:
         return "/truba/home/mtasbas/miniconda3/envs/venv/bin/RNAduplex"
     
+def get_pyensembl_cache_location():
+    hostname = gethostname()
+    if hostname == "nazo":
+        return "/home/nazif/thesis/data"
+    else:
+        return "/truba/home/mtasbas/data"
+
 
 RNADUPLEX_LOCATION = get_RNAduplex_location()
+PYENSEMBL_CACHE_DIR = get_pyensembl_cache_location()
 
-PYENSEMBL_CACHE_DIR = "/home/nazif/thesis/data"
 XGB_PIPELINE_DIR = "scripts/1_xgboost_train/results"
 SANA_DIR = "data/sana"
 GRCH37_DIR = "data/fasta/grch37"
