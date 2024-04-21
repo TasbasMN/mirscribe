@@ -733,10 +733,19 @@ def print_memory_usage():
     print(f"Memory Usage: {memory_percentage:.2f}%")
 
  
+import gc
+import psutil
+import os
+
+def print_memory_usage():
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    print(f"Memory usage: {mem_info.rss / (1024 ** 2):.2f} MB")
+
 def main():
     # Get the memory limit
     memory_limit = get_memory_limit()
-    print(f"Memory limit: {memory_limit / 1024 / 1024:.2f} MB")
+    print(f"Memory limit: {memory_limit}")
     print_memory_usage()
 
     args = parse_cli_arguments()
@@ -750,104 +759,156 @@ def main():
     handle_output_dir(output_dir)
     rnaduplex_results_file = os.path.join(output_dir, f"{vcf_file_name}_{start}_{end}_rnaduplex.csv")
 
+    print("Loading VCF into DataFrame...")
     df = load_vcf_into_df(vcf_file_path)
-    print("Loaded VCF")
+    print("VCF loaded into DataFrame.")
     print_memory_usage()
 
     if end == -1:
         end = len(df)
 
     df = df[start:end]
-    print(f"Number of mutations: {len(df)}")
-    print_memory_usage()
 
+    print("Augmenting ID...")
     augment_id(df)
+    print("ID augmented.")
+    print_memory_usage()
+
+    print("Validating reference nucleotides...")
     df = validate_ref_nucleotides(df)
-    print("Augmented ID and validated reference nucleotides")
+    print("Reference nucleotides validated.")
     print_memory_usage()
 
+    print("Generating is_mirna column...")
     df = generate_is_mirna_column(df, grch=37)
-    print("Generated is_mirna column")
+    print("is_mirna column generated.")
     print_memory_usage()
 
+    print("Generating sequence columns...")
     df['upstream_seq'] = df.apply(lambda row: get_upstream_sequence(row, NUCLEOTIDE_OFFSET), axis=1)
     df['downstream_seq'] = df.apply(lambda row: get_downstream_sequence(row, NUCLEOTIDE_OFFSET), axis=1)
     df['wt_seq'] = df["upstream_seq"] + df["ref"] + df["downstream_seq"]
     df['mut_seq'] = df["upstream_seq"] + df["alt"] + df["downstream_seq"]
-    print("Generated sequence columns")
+    print("Sequence columns generated.")
     print_memory_usage()
 
     grch37 = import_pyensembl(37)
-    print("Imported pyensembl")
-    print_memory_usage()
 
+    print("Generating transcript ID and gene name columns...")
     generate_transcript_id_and_gene_name_columns(df, grch37)
-    print("Generated transcript ID and gene name columns")
+    print("Transcript ID and gene name columns generated.")
     print_memory_usage()
 
+    print("Classifying and saving...")
     classify_and_save(df, vcf_file_name)
-    print("Classified and saved mutations")
+    print("Classified and saved.")
     print_memory_usage()
 
+    del df
+    gc.collect()
+    print("Deleted DataFrame and collected garbage.")
+    print_memory_usage()
+
+    print("Reading case_1.csv...")
     df = pd.read_csv(os.path.join(output_dir, f"{vcf_file_name}_case_1.csv"))
-    print("Loaded case 1 mutations")
+    print("case_1.csv read into DataFrame.")
     print_memory_usage()
 
+    print("Preparing jobs from DataFrame...")
     wt_jobs, mutated_jobs = prepare_jobs_from_df(df)
-    del df
-    gc.collect()
-    print("Prepared jobs from dataframe")
+    print("Jobs prepared from DataFrame.")
     print_memory_usage()
 
+    print("Running wild-type jobs...")
     wt_result_array = run_jobs_multithreaded(wt_jobs, 0)
-    print("Ran wild-type jobs")
+    print("Wild-type jobs completed.")
     print_memory_usage()
 
+    print("Running mutated jobs...")
     mut_result_array = run_jobs_multithreaded(mutated_jobs, 1)
-    del wt_jobs, mutated_jobs
-    gc.collect()
-    print("Ran mutated jobs")
+    print("Mutated jobs completed.")
     print_memory_usage()
 
+    print(f"Saving wild-type results to {rnaduplex_results_file}...")
     save_results_to_disk(wt_result_array, rnaduplex_results_file)
-    print("Saved wild-type results")
-    print_memory_usage()
+    print("Wild-type results saved.")
 
+    print(f"Saving mutated results to {rnaduplex_results_file}...")
     save_results_to_disk(mut_result_array, rnaduplex_results_file)
-    print("Saved mutated results")
-    print_memory_usage()
+    print("Mutated results saved.")
 
-    df = create_results_dataframe(wt_result_array, mut_result_array)
-    print("Created results dataframe")
-    del wt_result_array, mut_result_array
+    del wt_jobs, mutated_jobs, wt_result_array, mut_result_array
     gc.collect()
+    print("Deleted job and result arrays, and collected garbage.")
     print_memory_usage()
 
+    print("Creating results DataFrame...")
+    df = create_results_dataframe(wt_result_array, mut_result_array)
+    print("Results DataFrame created.")
+    print_memory_usage()
+
+    print("Generating alignment string from dot-bracket...")
     df = generate_alignment_string_from_dot_bracket(df)
-    df = generate_match_count_columns(df)
-    df = generate_ta_sps_columns(df)
-    df = generate_mre_sequence_for_vcf(df)
-    df = generate_important_sites(df)
-    df = generate_mirna_conservation_column(df)
-    df = generate_seed_type_columns(df)
-    df = generate_mre_au_content_column(df)
-    df = generate_au_content_column_for_vcf(df)
-    print("Generated feature columns")
+    print("Alignment string generated.")
     print_memory_usage()
 
+    print("Generating match count columns...")
+    df = generate_match_count_columns(df)
+    print("Match count columns generated.")
+    print_memory_usage()
+
+    print("Generating ta_sps columns...")
+    df = generate_ta_sps_columns(df)
+    print("ta_sps columns generated.")
+    print_memory_usage()
+
+    print("Generating MRE sequence for VCF...")
+    df = generate_mre_sequence_for_vcf(df)
+    print("MRE sequence for VCF generated.")
+    print_memory_usage()
+
+    print("Generating important sites...")
+    df = generate_important_sites(df)
+    print("Important sites generated.")
+    print_memory_usage()
+
+    print("Generating miRNA conservation column...")
+    df = generate_mirna_conservation_column(df)
+    print("miRNA conservation column generated.")
+    print_memory_usage()
+
+    print("Generating seed type columns...")
+    df = generate_seed_type_columns(df)
+    print("Seed type columns generated.")
+    print_memory_usage()
+
+    print("Generating MRE AU content column...")
+    df = generate_mre_au_content_column(df)
+    print("MRE AU content column generated.")
+    print_memory_usage()
+
+    print("Generating AU content column for VCF...")
+    df = generate_au_content_column_for_vcf(df)
+    print("AU content column for VCF generated.")
+    print_memory_usage()
+
+    print("Making predictions...")
     pred_df = make_predictions(df)
+    print("Predictions made.")
+    print_memory_usage()
+
     del df
     gc.collect()
-    print("Made predictions")
+    print("Deleted DataFrame and collected garbage.")
     print_memory_usage()
 
     meaningful_results_file = os.path.join(output_dir, f"{vcf_file_name}_{start}_{end}_meaningful_results.csv")
 
+    print(f"Saving meaningful results to {meaningful_results_file}...")
     pred_df[pred_df.pred_difference_binary != 0].to_csv(meaningful_results_file, index=False)
-    del pred_df
-    gc.collect()
-    print("Saved meaningful results. Exiting. ###############################################")
+    print("Meaningful results saved.")
     print_memory_usage()
 
 if __name__ == "__main__":
     main()
+
