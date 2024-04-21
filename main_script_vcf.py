@@ -4,6 +4,7 @@ from scripts.globals import *
 import xgboost as xgb
 import pandas as pd
 import numpy as np
+import psutil
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -704,9 +705,21 @@ def save_results_to_disk(results, result_file):
         writer = csv.writer(f)
         writer.writerows(results)
  
- 
+
+def get_memory_limit():
+    mem = psutil.virtual_memory()
+    total_memory = mem.total
+    available_memory = mem.available
+    memory_limit = min(total_memory, available_memory)
+    return memory_limit
+
+
  
 def main():
+    
+    # Get the memory limit
+    memory_limit = get_memory_limit()   
+    print(f"Memory limit: {memory_limit / 1024 / 1024:.2f} MB")
     
     args = parse_cli_arguments()
     vcf_file_path = args.vcf
