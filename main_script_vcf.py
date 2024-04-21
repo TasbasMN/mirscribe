@@ -837,14 +837,19 @@ def main():
     save_results_to_disk(mut_result_array, rnaduplex_results_file)
     print("Mutated results saved.")
 
-    del wt_jobs, mutated_jobs, wt_result_array, mut_result_array
+    del wt_jobs, mutated_jobs
     gc.collect()
-    print("Deleted job and result arrays, and collected garbage.")
+    print("Deleted job arrays and collected garbage.")
     print_memory_usage()
 
     print("Creating results DataFrame...")
     df = create_results_dataframe(wt_result_array, mut_result_array)
     print("Results DataFrame created.")
+    print_memory_usage()
+    
+    del wt_result_array, mut_result_array
+    gc.collect()
+    print("Deleted result arrays and collected garbage.")
     print_memory_usage()
 
     print("Generating alignment string from dot-bracket...")
