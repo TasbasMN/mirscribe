@@ -759,16 +759,18 @@ def main():
     
 
     save_results_to_disk(wt_result_array, rnaduplex_results_file)
-    save_results_to_disk(mut_result_array, rnaduplex_results_file)    
+    print("Saved wild-type results")
+    save_results_to_disk(mut_result_array, rnaduplex_results_file)
+    print("Saved mutated results")
 
     df = create_results_dataframe(wt_result_array, mut_result_array)
+    print("Created results dataframe")
     del wt_result_array, mut_result_array
     gc.collect()
 
 
     df = generate_alignment_string_from_dot_bracket(df)
     df = generate_match_count_columns(df)
-    
     df = generate_ta_sps_columns(df)
     df = generate_mre_sequence_for_vcf(df)
     df = generate_important_sites(df)
@@ -776,18 +778,20 @@ def main():
     df = generate_seed_type_columns(df)
     df = generate_mre_au_content_column(df)
     df = generate_au_content_column_for_vcf(df)
-    
+    print("Generated feature columns")
 
     
     pred_df = make_predictions(df)
     del df
     gc.collect()
+    print("Made predictions")
 
     meaningful_results_file = os.path.join(output_dir, f"{vcf_file_name}_{start}_{end}_meaningful_results.csv")
     
     pred_df[pred_df.pred_difference_binary != 0].to_csv(meaningful_results_file, index=False)
     del pred_df
     gc.collect()
+    print("Saved meaningful results. Exiting.")
 
 if __name__ == "__main__":
     main()
