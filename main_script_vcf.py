@@ -729,18 +729,13 @@ def print_memory_usage():
     memory_percentage = (used_memory / total_memory) * 100
 
     # Print the memory usage information
-    print(f"Used Memory: {used_memory / 1024 / 1024:.2f} MB")
-    print(f"Memory Usage: {memory_percentage:.2f}%")
+    print(f"Used Memory: {used_memory / 1024 / 1024:.2f} MB, memory percentage: {memory_percentage:.2f}%")
 
  
 import gc
 import psutil
 import os
 
-def print_memory_usage():
-    process = psutil.Process(os.getpid())
-    mem_info = process.memory_info()
-    print(f"Memory usage: {mem_info.rss / (1024 ** 2):.2f} MB")
 
 def main():
     # Get the memory limit
