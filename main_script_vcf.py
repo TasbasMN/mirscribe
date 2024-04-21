@@ -909,6 +909,26 @@ def main():
     print("Meaningful results saved.")
     print_memory_usage()
 
-if __name__ == "__main__":
-    main()
 
+
+import cProfile
+import pstats
+from pstats import SortKey
+
+if __name__ == "__main__":
+    profiler = cProfile.Profile()
+    profiler.enable()
+    main()
+    profiler.disable()
+    profiler.dump_stats('profile_report.prof')
+
+    # Load the profiling data
+    p = pstats.Stats('profile_report.prof')
+
+    # Print the profiling report sorted by total time
+    print("Profiling report sorted by total time:")
+    p.sort_stats(SortKey.TIME).print_stats()
+
+    # Print the profiling report sorted by cumulative time
+    print("\nProfiling report sorted by cumulative time:")
+    p.sort_stats(SortKey.CUMULATIVE).print_stats()
