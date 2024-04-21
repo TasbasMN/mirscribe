@@ -714,13 +714,31 @@ def get_memory_limit():
     return memory_limit
 
 
+def print_memory_usage():
+    # Get the current process
+    process = psutil.Process()
+
+    # Get the memory info for the current process
+    mem_info = process.memory_info()
+
+    # Get the total memory and used memory in bytes
+    total_memory = psutil.virtual_memory().total
+    used_memory = mem_info.rss
+
+    # Calculate the memory usage percentage
+    memory_percentage = (used_memory / total_memory) * 100
+
+    # Print the memory usage information
+    print(f"Used Memory: {used_memory / 1024 / 1024:.2f} MB")
+    print(f"Memory Usage: {memory_percentage:.2f}%")
+
  
 def main():
-    
     # Get the memory limit
-    memory_limit = get_memory_limit()   
+    memory_limit = get_memory_limit()
     print(f"Memory limit: {memory_limit / 1024 / 1024:.2f} MB")
-    
+    print_memory_usage()
+
     args = parse_cli_arguments()
     vcf_file_path = args.vcf
     start = args.start
@@ -728,59 +746,82 @@ def main():
     output_dir = args.output_dir
 
     vcf_file_name = os.path.basename(vcf_file_path).split(".")[0]
-    
+
     handle_output_dir(output_dir)
     rnaduplex_results_file = os.path.join(output_dir, f"{vcf_file_name}_{start}_{end}_rnaduplex.csv")
-    
 
-    
     df = load_vcf_into_df(vcf_file_path)
-    
+    print("Loaded VCF")
+    print_memory_usage()
+
     if end == -1:
         end = len(df)
-    
+
     df = df[start:end]
-    
+    print(f"Number of mutations: {len(df)}")
+    print_memory_usage()
+
     augment_id(df)
     df = validate_ref_nucleotides(df)
+    print("Augmented ID and validated reference nucleotides")
+    print_memory_usage()
+
     df = generate_is_mirna_column(df, grch=37)
-    
+    print("Generated is_mirna column")
+    print_memory_usage()
+
     df['upstream_seq'] = df.apply(lambda row: get_upstream_sequence(row, NUCLEOTIDE_OFFSET), axis=1)
     df['downstream_seq'] = df.apply(lambda row: get_downstream_sequence(row, NUCLEOTIDE_OFFSET), axis=1)
     df['wt_seq'] = df["upstream_seq"] + df["ref"] + df["downstream_seq"]
     df['mut_seq'] = df["upstream_seq"] + df["alt"] + df["downstream_seq"]
-    
+    print("Generated sequence columns")
+    print_memory_usage()
+
     grch37 = import_pyensembl(37)
-    
+    print("Imported pyensembl")
+    print_memory_usage()
+
     generate_transcript_id_and_gene_name_columns(df, grch37)
-    
-    
+    print("Generated transcript ID and gene name columns")
+    print_memory_usage()
+
     classify_and_save(df, vcf_file_name)
-    
-    
-    
+    print("Classified and saved mutations")
+    print_memory_usage()
+
     df = pd.read_csv(os.path.join(output_dir, f"{vcf_file_name}_case_1.csv"))
-    
+    print("Loaded case 1 mutations")
+    print_memory_usage()
+
     wt_jobs, mutated_jobs = prepare_jobs_from_df(df)
     del df
     gc.collect()
-    
+    print("Prepared jobs from dataframe")
+    print_memory_usage()
+
     wt_result_array = run_jobs_multithreaded(wt_jobs, 0)
+    print("Ran wild-type jobs")
+    print_memory_usage()
+
     mut_result_array = run_jobs_multithreaded(mutated_jobs, 1)
     del wt_jobs, mutated_jobs
     gc.collect()
-    
+    print("Ran mutated jobs")
+    print_memory_usage()
 
     save_results_to_disk(wt_result_array, rnaduplex_results_file)
     print("Saved wild-type results")
+    print_memory_usage()
+
     save_results_to_disk(mut_result_array, rnaduplex_results_file)
     print("Saved mutated results")
+    print_memory_usage()
 
     df = create_results_dataframe(wt_result_array, mut_result_array)
     print("Created results dataframe")
     del wt_result_array, mut_result_array
     gc.collect()
-
+    print_memory_usage()
 
     df = generate_alignment_string_from_dot_bracket(df)
     df = generate_match_count_columns(df)
@@ -792,19 +833,21 @@ def main():
     df = generate_mre_au_content_column(df)
     df = generate_au_content_column_for_vcf(df)
     print("Generated feature columns")
+    print_memory_usage()
 
-    
     pred_df = make_predictions(df)
     del df
     gc.collect()
     print("Made predictions")
+    print_memory_usage()
 
     meaningful_results_file = os.path.join(output_dir, f"{vcf_file_name}_{start}_{end}_meaningful_results.csv")
-    
+
     pred_df[pred_df.pred_difference_binary != 0].to_csv(meaningful_results_file, index=False)
     del pred_df
     gc.collect()
-    print("Saved meaningful results. Exiting.")
+    print("Saved meaningful results. Exiting. ###############################################")
+    print_memory_usage()
 
 if __name__ == "__main__":
     main()
