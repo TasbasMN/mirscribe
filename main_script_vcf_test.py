@@ -613,16 +613,23 @@ def prepare_jobs_from_df(df):
     mirna_identifiers = mirna_df["mirna_accession"].tolist()
     mirna_sequences = mirna_df["sequence"].tolist()
 
-    # Create pairs of wild-type sequences and miRNA sequences
-    wt_pairs = [(wt, mirna) for wt in wt_sequences for mirna in mirna_sequences]
-    mutated_pairs = [(mutated, mirna) for mutated in mutated_sequences for mirna in mirna_sequences]
-    id_pairs = [(identifier, mirna_id) for identifier in identifiers for mirna_id in mirna_identifiers]
+    # Create a dictionary to store miRNA sequences and identifiers
+    mirna_dict = dict(zip(mirna_identifiers, mirna_sequences))
 
-    # Create sets of job tuples
-    wt_jobs_set = {wt_pair + id_pair for wt_pair, id_pair in zip(wt_pairs, id_pairs)}
-    mutated_jobs_set = {mutated_pair + id_pair for mutated_pair, id_pair in zip(mutated_pairs, id_pairs)}
+    # Create a generator for wild-type jobs
+    def wt_job_generator():
+        for wt, identifier in zip(wt_sequences, identifiers):
+            for mirna_id, mirna in mirna_dict.items():
+                yield (wt, mirna, identifier, mirna_id)
 
-    return wt_jobs_set, mutated_jobs_set
+    # Create a generator for mutated jobs
+    def mutated_job_generator():
+        for mutated, identifier in zip(mutated_sequences, identifiers):
+            for mirna_id, mirna in mirna_dict.items():
+                yield (mutated, mirna, identifier, mirna_id)
+
+    return wt_job_generator(), mutated_job_generator()
+
 
 
 def run_rnaduplex_multithreaded(long_sequence, short_sequence, long_identifier, short_identifier):
@@ -674,24 +681,25 @@ from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
-def run_jobs_multithreaded(job_list, binary_value):
+def run_jobs_multithreaded(job_generator, binary_value):
     """
     Run jobs in a multithreaded manner using ProcessPoolExecutor.
 
     Args:
-        job_list (list): A list of jobs to be executed. Each job should be a tuple or list of arguments to be passed to the `run_rnaduplex_multithreaded` function.
+        job_generator (generator): A generator object that yields job tuples.
         binary_value (any): A binary value to be appended to the result of each job. 0 for wild-type, 1 for mutated.
 
     Returns:
         list: A list of tuples, where each tuple contains the result of a job and the binary value.
     """
     with ProcessPoolExecutor() as executor:
-        future_jobs = [executor.submit(
-            run_rnaduplex_multithreaded, *job) for job in job_list]
+        futures = []
+        for job in job_generator:
+            future = executor.submit(run_rnaduplex_multithreaded, *job)
+            futures.append((future, job))
 
         results = []
-
-        for future, job in zip(as_completed(future_jobs), job_list):
+        for future, job in futures:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             logging.info(f"{timestamp} - Processing job: {job}")
             result = future.result()
@@ -701,6 +709,7 @@ def run_jobs_multithreaded(job_list, binary_value):
             logging.info(f"{timestamp} - Completed job: {job}")
 
     return results
+
 
  
  
